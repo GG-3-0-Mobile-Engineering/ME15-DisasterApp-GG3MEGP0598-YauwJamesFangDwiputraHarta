@@ -159,67 +159,85 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             }
 
             override fun onQueryTextSubmit(newQuery: String?): Boolean {
-                val matchingPair = AdminArea.suggestions.find { it.first == newQuery }
+                val matchingPair =
+                    AdminArea.suggestions.find { it.first.lowercase() == newQuery?.lowercase() }
                 val idArea = matchingPair?.second
 
                 // Do whatever you want with selection text
-                query.value = idArea
-                isSearchEmpty.value = false
-                Log.d("id area", "${idArea}")
-                mainViewModel.getSearchingDisaster(idArea!!).observe(this@MainActivity) {
-                    if (it != null) {
-                        when (it) {
-                            is ResultCustom.Loading -> Toast.makeText(
-                                this@MainActivity,
-                                ("loading"),
-                                Toast.LENGTH_LONG
-                            ).show()
 
-                            is ResultCustom.Success ->
+                if (idArea != null) {
+                    query.value = idArea
+                    isSearchEmpty.value = false
+                    Log.d("id area", "${idArea}")
 
-                                if (it.data!!.isNotEmpty()) {
-                                    var listDisasterArea = ArrayList<Properties>()
-                                    it.data.forEach { disaster ->
-                                        listDisasterArea.add(
-                                            Properties(
-                                                disaster?.properties?.imageUrl,
-                                                disaster?.properties?.disasterType
+                    mainViewModel.getSearchingDisaster(idArea!!).observe(this@MainActivity) {
+                        if (it != null) {
+                            when (it) {
+                                is ResultCustom.Loading -> Toast.makeText(
+                                    this@MainActivity,
+                                    ("loading"),
+                                    Toast.LENGTH_LONG
+                                ).show()
+
+                                is ResultCustom.Success ->
+
+                                    if (it.data!!.isNotEmpty()) {
+                                        var listDisasterArea = ArrayList<Properties>()
+                                        it.data.forEach { disaster ->
+                                            listDisasterArea.add(
+                                                Properties(
+                                                    disaster?.properties?.imageUrl,
+                                                    disaster?.properties?.disasterType
+                                                )
                                             )
-                                        )
-                                        Log.d("kok ga muncul", "${disaster?.properties?.imageUrl}")
+                                            Log.d(
+                                                "kok ga muncul",
+                                                "${disaster?.properties?.imageUrl}"
+                                            )
+                                        }
+                                        val bottomSheet =
+                                            findViewById<ConstraintLayout>(R.id.bottom_sheet)
+                                        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+                                        bottomSheetBehavior.peekHeight = 100
+                                        bottomSheetBehavior.isFitToContents = false
+                                        bottomSheetBehavior.halfExpandedRatio = 0.3f
+                                        bottomSheetBehavior.state =
+                                            BottomSheetBehavior.STATE_HALF_EXPANDED
+                                        recyclerView = findViewById(R.id.rv_item)
+                                        disasterAdapter = DisasterAdapter(listDisasterArea)
+                                        recyclerView.adapter = disasterAdapter
+
+
+                                    } else {
+                                        Toast.makeText(
+                                            this@MainActivity,
+                                            ("no data"),
+                                            Toast.LENGTH_LONG
+                                        ).show()
                                     }
-                                    val bottomSheet =
-                                        findViewById<ConstraintLayout>(R.id.bottom_sheet)
-                                    bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
-                                    bottomSheetBehavior.peekHeight = 100
-                                    bottomSheetBehavior.isFitToContents = false
-                                    bottomSheetBehavior.halfExpandedRatio = 0.3f
-                                    bottomSheetBehavior.state =
-                                        BottomSheetBehavior.STATE_HALF_EXPANDED
-                                    recyclerView = findViewById(R.id.rv_item)
-                                    disasterAdapter = DisasterAdapter(listDisasterArea)
-                                    recyclerView.adapter = disasterAdapter
 
-
-                                } else {
+                                is ResultCustom.Error -> {
                                     Toast.makeText(
                                         this@MainActivity,
-                                        ("no data"),
+                                        ("${it.error}"),
                                         Toast.LENGTH_LONG
                                     ).show()
                                 }
 
-                            is ResultCustom.Error -> {
-                                Toast.makeText(
-                                    this@MainActivity,
-                                    ("${it.error}"),
-                                    Toast.LENGTH_LONG
-                                ).show()
                             }
-
                         }
                     }
                 }
+                else {
+                    mMap.clear()
+                    Toast.makeText(
+                        this@MainActivity,
+                        ("Area tidak ditemukan"),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+
 
 
                 return true
