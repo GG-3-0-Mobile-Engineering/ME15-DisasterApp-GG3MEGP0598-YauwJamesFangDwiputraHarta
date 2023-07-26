@@ -1,13 +1,17 @@
 package com.james.disasterapp
 
 import android.app.SearchManager
+import android.content.Intent
 import android.database.Cursor
 import android.database.MatrixCursor
+import android.opengl.Visibility
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.BaseColumns
 import android.util.Log
+import android.view.View
 import android.widget.*
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
@@ -24,6 +28,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.james.disasterapp.databinding.ActivityMainBinding
 import com.james.disasterapp.databinding.BottomSheetBinding
 import com.james.disasterapp.model.Properties
+import com.james.submissiononefundamentalandroiddicoding.viewmodel.SettingViewModel
+import com.james.submissiononefundamentalandroiddicoding.viewmodel.SettingViewModelFactory
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -39,6 +45,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private var isSearchEmpty: MutableLiveData<Boolean> = MutableLiveData(true)
     private var query = MutableLiveData("")
     private val markersList: MutableList<Marker> = mutableListOf()
+    private lateinit var province_filter: String
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,6 +63,110 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             ViewModelProvider.NewInstanceFactory()
         )[MainViewModel::class.java]
 
+
+        val pref = SettingPreferences.getInstance(dataStore)
+        val settingViewModel =
+            ViewModelProvider(this, SettingViewModelFactory(pref))[SettingViewModel::class.java]
+
+        settingViewModel.getThemeSettings().observe(
+            this
+        ) { isDarkModeActive: Boolean ->
+            if (isDarkModeActive) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            }
+        }
+
+        binding.fabSetting.setOnClickListener {
+            val intentToSetting = Intent(this, SettingActivity::class.java)
+            startActivity(intentToSetting)
+        }
+
+
+        binding.fabFilter.setOnClickListener {
+            val intent = Intent(this, FilterActivity::class.java)
+            startActivity(intent)
+        }
+
+
+        province_filter = AdminArea.PROVINCE
+
+
+
+        if (intent.getStringExtra(LOCATION) != null) {
+            province_filter = intent.getStringExtra(LOCATION)!!
+            Log.d("location222", "${province_filter}")
+        }
+
+
+
+        if (province_filter != null) {
+            mainViewModel.getSearchingDisaster(province_filter).observe(this@MainActivity) {
+                if (it != null) {
+                    when (it) {
+                        is ResultCustom.Loading -> Toast.makeText(
+                            this@MainActivity,
+                            ("loading"),
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                        is ResultCustom.Success ->
+                            if (it.data!!.isNotEmpty()) {
+                                mMap.clear()
+                                var listDisasterArea = ArrayList<Properties>()
+                                query.value = province_filter
+                                isSearchEmpty.value = false
+                                it.data.forEach { disaster ->
+                                    listDisasterArea.add(
+                                        Properties(
+                                            disaster?.properties?.imageUrl,
+                                            disaster?.properties?.disasterType
+                                        )
+                                    )
+                                    Log.d(
+                                        "kok ga muncul",
+                                        "${disaster?.properties?.imageUrl}"
+                                    )
+                                }
+                                val bottomSheet =
+                                    findViewById<ConstraintLayout>(R.id.bottom_sheet)
+                                bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+                                bottomSheetBehavior.peekHeight = 65
+                                bottomSheetBehavior.isFitToContents = false
+                                bottomSheetBehavior.halfExpandedRatio = 0.3f
+                                bottomSheetBehavior.state =
+                                    BottomSheetBehavior.STATE_HALF_EXPANDED
+                                recyclerView = findViewById(R.id.rv_item)
+                                disasterAdapter = DisasterAdapter(listDisasterArea)
+                                recyclerView.adapter = disasterAdapter
+
+
+                            } else {
+                                isSearchEmpty.value = false
+                                Toast.makeText(
+                                    this@MainActivity,
+                                    ("no data filter"),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+
+                        is ResultCustom.Error -> {
+                            Toast.makeText(
+                                this@MainActivity,
+                                ("${it.error}"),
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+
+                    }
+                } else {
+                    mMap.clear()
+                    isSearchEmpty.value = false
+                }
+            }
+        }
+
         showBottomSheet()
 
         searchView()
@@ -65,52 +176,55 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun showBottomSheet() {
 
-        mainViewModel.getDisaster().observe(this) {
-            if (it != null) {
-                when (it) {
-                    is ResultCustom.Loading -> Toast.makeText(
-                        this,
-                        ("loading"),
-                        Toast.LENGTH_LONG
-                    ).show()
-                    is ResultCustom.Success ->
+        if (province_filter == "all") {
+            isSearchEmpty.value = true
+            mainViewModel.getDisaster().observe(this) {
+                if (it != null) {
+                    when (it) {
+                        is ResultCustom.Loading -> Toast.makeText(
+                            this,
+                            ("loading"),
+                            Toast.LENGTH_LONG
+                        ).show()
+                        is ResultCustom.Success ->
 
-                        if (it.data!!.isNotEmpty()) {
-                            var listDisaster = ArrayList<Properties>()
-                            it.data.forEach { disaster ->
-                                listDisaster.add(
-                                    Properties(
-                                        disaster?.properties?.imageUrl,
-                                        disaster?.properties?.disasterType
+                            if (it.data!!.isNotEmpty()) {
+                                var listDisaster = ArrayList<Properties>()
+                                it.data.forEach { disaster ->
+                                    listDisaster.add(
+                                        Properties(
+                                            disaster?.properties?.imageUrl,
+                                            disaster?.properties?.disasterType
+                                        )
                                     )
-                                )
 //                                Log.d("kok ga muncul", "${disaster?.properties?.imageUrl}")
+                                }
+                                val bottomSheet = findViewById<ConstraintLayout>(R.id.bottom_sheet)
+                                bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+                                bottomSheetBehavior.peekHeight = 65
+                                bottomSheetBehavior.isFitToContents = false
+                                bottomSheetBehavior.halfExpandedRatio = 0.3f
+                                bottomSheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+                                recyclerView = findViewById(R.id.rv_item)
+                                disasterAdapter = DisasterAdapter(listDisaster)
+                                recyclerView.adapter = disasterAdapter
+                            } else {
+                                Toast.makeText(
+                                    this,
+                                    ("no data"),
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
-                            val bottomSheet = findViewById<ConstraintLayout>(R.id.bottom_sheet)
-                            bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
-                            bottomSheetBehavior.peekHeight = 100
-                            bottomSheetBehavior.isFitToContents = false
-                            bottomSheetBehavior.halfExpandedRatio = 0.3f
-                            bottomSheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
-                            recyclerView = findViewById(R.id.rv_item)
-                            disasterAdapter = DisasterAdapter(listDisaster)
-                            recyclerView.adapter = disasterAdapter
-                        } else {
+
+                        is ResultCustom.Error -> {
                             Toast.makeText(
                                 this,
-                                ("no data"),
+                                ("terjadi kesalahan"),
                                 Toast.LENGTH_LONG
                             ).show()
                         }
 
-                    is ResultCustom.Error -> {
-                        Toast.makeText(
-                            this,
-                            ("terjadi kesalahan"),
-                            Toast.LENGTH_LONG
-                        ).show()
                     }
-
                 }
             }
         }
@@ -129,7 +243,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         )
 
         binding.searchView.suggestionsAdapter = cursorAdapter
-
 
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String?): Boolean {
@@ -198,7 +311,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                                         val bottomSheet =
                                             findViewById<ConstraintLayout>(R.id.bottom_sheet)
                                         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
-                                        bottomSheetBehavior.peekHeight = 100
+                                        bottomSheetBehavior.peekHeight = 65
                                         bottomSheetBehavior.isFitToContents = false
                                         bottomSheetBehavior.halfExpandedRatio = 0.3f
                                         bottomSheetBehavior.state =
@@ -227,8 +340,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     mMap.clear()
                     Toast.makeText(
                         this@MainActivity,
@@ -282,7 +394,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                                     val bottomSheet =
                                         findViewById<ConstraintLayout>(R.id.bottom_sheet)
                                     bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
-                                    bottomSheetBehavior.peekHeight = 100
+                                    bottomSheetBehavior.peekHeight = 65
                                     bottomSheetBehavior.isFitToContents = false
                                     bottomSheetBehavior.halfExpandedRatio = 0.3f
                                     bottomSheetBehavior.state =
@@ -350,6 +462,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
                             is ResultCustom.Success -> {
                                 if (it.data!!.isNotEmpty()) {
+                                    mMap.clear()
 
                                     val boundsBuilder = LatLngBounds.Builder()
                                     it.data.forEach { disaster ->
@@ -413,6 +526,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
                             is ResultCustom.Success -> {
                                 if (it.data!!.isNotEmpty()) {
+                                    mMap.clear()
 
                                     val boundsBuilder = LatLngBounds.Builder()
                                     it.data.forEach { disaster ->
@@ -442,8 +556,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                                             resources.displayMetrics.heightPixels,
                                             100
                                         )
+
                                     )
                                 } else {
+                                    mMap.clear()
                                     Toast.makeText(
                                         this@MainActivity,
                                         "no data",
@@ -451,20 +567,26 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                                     ).show()
 
                                 }
-
                             }
                             is ResultCustom.Error -> {
+                                mMap.clear()
                                 Toast.makeText(this@MainActivity, it.error, Toast.LENGTH_LONG)
                                     .show()
                             }
 
                         }
+                    } else {
+                        mMap.clear()
                     }
                 }
             }
         }
 
 
+    }
+
+    companion object {
+        const val LOCATION = "location"
     }
 
 //    override fun onCreateOptionsMenu(menu: Menu): Boolean {

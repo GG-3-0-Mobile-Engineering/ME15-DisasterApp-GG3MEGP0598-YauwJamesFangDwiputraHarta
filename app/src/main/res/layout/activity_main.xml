@@ -10,38 +10,79 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-
-
-
-
         <fragment xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
             android:id="@+id/map"
             android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintStart_toStartOf="parent" />
 
-        <android.widget.SearchView
-            android:id="@+id/searchView"
+
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:iconifiedByDefault="false"
-            android:layout_marginTop="15dp"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/searchview_background"
-            android:queryBackground="@android:color/transparent"
-            android:queryHint="search area"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintVertical_bias="0.1"/>
+            android:layout_height="wrap_content">
+
+
+            <android.widget.SearchView
+                android:id="@+id/searchView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/searchview_background"
+                android:iconifiedByDefault="false"
+                android:queryBackground="@android:color/transparent"
+                android:queryHint="search area"
+                app:layout_constraintEnd_toStartOf="@id/fab_filter"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintWidth_percent="0.7" />
+
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fab_filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/round_filter_alt_24"
+                    android:outlineSpotShadowColor="@color/white"
+                    android:layout_marginEnd="10dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:backgroundTint="@color/white"
+                    app:backgroundTint="@color/white"
+                    android:tint="@color/white"
+                    app:fabSize="mini"
+                    app:layout_constraintStart_toEndOf="@id/searchView"
+                    app:layout_constraintTop_toTopOf="@id/searchView"
+                    app:layout_constraintBottom_toBottomOf="@id/searchView"/>
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fab_setting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginEnd="10dp"
+                    android:src="@drawable/round_settings_24"
+                    app:backgroundTint="@color/white"
+                    android:outlineSpotShadowColor="@color/white"
+                    android:tint="@color/white"
+                    android:backgroundTint="@color/white"
+                    app:fabSize="mini"
+                    app:layout_constraintStart_toEndOf="@id/fab_filter"
+                    app:layout_constraintTop_toTopOf="@id/fab_filter"
+                    app:layout_constraintBottom_toBottomOf="@id/fab_filter" />
+
+
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 
     </FrameLayout>
-
 
 
     <include layout="@layout/bottom_sheet" />

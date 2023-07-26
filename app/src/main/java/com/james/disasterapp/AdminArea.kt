@@ -2,6 +2,7 @@ package com.james.disasterapp
 
 object AdminArea {
     val suggestions = listOf(
+        Pair("Semua", "all"),
         Pair("Aceh", "ID-AC"),
         Pair("Bali", "ID-BA"),
         Pair("Kep Bangka Belitung", "ID-BB"),
@@ -37,4 +38,6 @@ object AdminArea {
         Pair("Sulawesi Barat", "ID-SR"),
         Pair("Sumatera Barat", "ID-SB"),
     )
+
+    const val PROVINCE = "all"
 }
