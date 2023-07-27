@@ -20,4 +20,8 @@ interface ApiService {
         @Query("disaster") disaster : String
     ) : DisasterResponse
 
+    @GET ("reports?timeperiod=604800&disaster=flood")
+    suspend fun getNewrestDisaster(
+    ) : DisasterResponse
+
 }

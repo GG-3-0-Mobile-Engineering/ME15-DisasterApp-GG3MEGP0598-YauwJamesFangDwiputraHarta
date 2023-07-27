@@ -8,46 +8,66 @@ import com.james.disasterapp.model.GeometriesItem
 
 class Repository {
 
-    fun getDisaster() : LiveData<ResultCustom<List<GeometriesItem?>?>> = liveData {
-        emit (ResultCustom.Loading)
+    fun getDisaster(): LiveData<ResultCustom<List<GeometriesItem?>?>> = liveData {
+        emit(ResultCustom.Loading)
         try {
             val response = ApiConfig.getApiService().getDisaster()
-            if (response.result?.objects?.output?.geometries!!.isNotEmpty()){
+            if (response.result?.objects?.output?.geometries!!.isNotEmpty()) {
                 emit(ResultCustom.Success(response.result.objects.output.geometries))
-            } else{
-                emit (ResultCustom.Error("disaster tidak ditemukan"))
+            } else {
+                emit(ResultCustom.Error("disaster tidak ditemukan"))
             }
-        }catch (exception: Exception) {
+        } catch (exception: Exception) {
             emit(ResultCustom.Error("Unknown error" ?: "Unknown error"))
         }
     }
 
-    fun getSearchingDisaster(admin : String) : LiveData<ResultCustom<List<GeometriesItem?>?>> = liveData {
-        emit (ResultCustom.Loading)
-        try {
-            val response = ApiConfig.getApiService().getSearchingDisaster(admin)
-            if (response.result?.objects?.output?.geometries!!.isNotEmpty()){
-                emit(ResultCustom.Success(response.result.objects.output.geometries))
-            } else{
-                emit (ResultCustom.Error("Marker tidak ditemukan"))
+    fun getSearchingDisaster(admin: String): LiveData<ResultCustom<List<GeometriesItem?>?>> =
+        liveData {
+            emit(ResultCustom.Loading)
+            try {
+                val response = ApiConfig.getApiService().getSearchingDisaster(admin)
+                if (response.result?.objects?.output?.geometries!!.isNotEmpty()) {
+                    emit(ResultCustom.Success(response.result.objects.output.geometries))
+                } else {
+                    emit(ResultCustom.Error("Marker tidak ditemukan"))
+                }
+            } catch (exception: Exception) {
+                emit(ResultCustom.Error("Unknown error" ?: "Unknown error"))
             }
-        }catch (exception: Exception) {
-            emit(ResultCustom.Error("Unknown error" ?: "Unknown error"))
         }
-    }
 
 
-    fun getFilterDisaster(disaster : String) : LiveData<ResultCustom<List<GeometriesItem?>?>> = liveData {
-        emit (ResultCustom.Loading)
-        try {
-            val response = ApiConfig.getApiService().getFilterDisaster(disaster)
-            if (response.result?.objects?.output?.geometries!!.isNotEmpty()){
-                emit(ResultCustom.Success(response.result.objects.output.geometries))
-            } else{
-                emit (ResultCustom.Error("Marker tidak ditemukan"))
+    fun getFilterDisaster(disaster: String): LiveData<ResultCustom<List<GeometriesItem?>?>> =
+        liveData {
+            emit(ResultCustom.Loading)
+            try {
+                val response = ApiConfig.getApiService().getFilterDisaster(disaster)
+                if (response.result?.objects?.output?.geometries!!.isNotEmpty()) {
+                    emit(ResultCustom.Success(response.result.objects.output.geometries))
+                } else {
+                    emit(ResultCustom.Error("Marker tidak ditemukan"))
+                }
+            } catch (exception: Exception) {
+                emit(ResultCustom.Error("Unknown error" ?: "Unknown error"))
             }
-        }catch (exception: Exception) {
-            emit(ResultCustom.Error("Unknown error" ?: "Unknown error"))
         }
-    }
+
+    fun getNewrestFlood(): LiveData<ResultCustom<List<GeometriesItem?>?>> =
+        liveData {
+            emit(ResultCustom.Loading)
+            try {
+                val response = ApiConfig.getApiService().getNewrestDisaster()
+                if (response.result?.objects?.output?.geometries!!.isNotEmpty()) {
+                    emit(ResultCustom.Success(response.result.objects.output.geometries))
+                } else {
+                    emit(ResultCustom.Error("Marker tidak ditemukan"))
+                }
+            } catch (exception: Exception) {
+                emit(ResultCustom.Error("Unknown error" ?: "Unknown error"))
+            }
+        }
+
+
+
 }

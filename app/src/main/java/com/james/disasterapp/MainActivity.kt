@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -33,6 +34,8 @@ import com.james.submissiononefundamentalandroiddicoding.viewmodel.SettingViewMo
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.*
+import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
@@ -86,18 +89,27 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         )[MainViewModel::class.java]
 
 
-        val pref = SettingPreferences.getInstance(dataStore)
-        val settingViewModel =
-            ViewModelProvider(this, SettingViewModelFactory(pref))[SettingViewModel::class.java]
+//        val pref = SettingPreferences.getInstance(dataStore)
+//        val settingViewModel =
+//            ViewModelProvider(this, SettingViewModelFactory(pref))[SettingViewModel::class.java]
 
-        settingViewModel.getThemeSettings().observe(
-            this
-        ) { isDarkModeActive: Boolean ->
-            if (isDarkModeActive) {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-            } else {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-            }
+//        settingViewModel.getThemeSettings().observe(
+//            this
+//        ) { isDarkModeActive: Boolean ->
+//            if (isDarkModeActive) {
+//                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+//            } else {
+//                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+//            }
+//        }
+
+        val preferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        preferences.getString(
+            getString(R.string.pref_key_dark),
+            getString(R.string.pref_dark_auto)
+        )?.apply {
+            val mode = NightMode.valueOf(this.uppercase(Locale.US))
+            AppCompatDelegate.setDefaultNightMode(mode.value)
         }
 
         Log.d("testing12", "${isSearchEmpty.value} dan ${isFilterEmpty.value}")

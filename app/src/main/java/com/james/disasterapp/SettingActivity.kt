@@ -22,27 +22,34 @@ class SettingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_setting)
 
-        val switchTheme = findViewById<SwitchMaterial>(R.id.switch_theme)
-
-        val pref = SettingPreferences.getInstance(dataStore)
-        val settingViewModel =
-            ViewModelProvider(this, SettingViewModelFactory(pref))[SettingViewModel::class.java]
-
-        settingViewModel.getThemeSettings().observe(
-            this
-        ) { isDarkModeActive: Boolean ->
-            if (isDarkModeActive) {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-                switchTheme.isChecked = true
-            } else {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-                switchTheme.isChecked = false
-            }
+        if (savedInstanceState == null) {
+            supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.settings, SettingsFragment())
+                .commit()
         }
 
-        switchTheme.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-            settingViewModel.saveThemeSetting(isChecked)
-        }
+//        val switchTheme = findViewById<SwitchMaterial>(R.id.switch_theme)
+//
+//        val pref = SettingPreferences.getInstance(dataStore)
+//        val settingViewModel =
+//            ViewModelProvider(this, SettingViewModelFactory(pref))[SettingViewModel::class.java]
+//
+//        settingViewModel.getThemeSettings().observe(
+//            this
+//        ) { isDarkModeActive: Boolean ->
+//            if (isDarkModeActive) {
+//                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+//                switchTheme.isChecked = true
+//            } else {
+//                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+//                switchTheme.isChecked = false
+//            }
+//        }
+//
+//        switchTheme.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
+//            settingViewModel.saveThemeSetting(isChecked)
+//        }
 
         val actionBar = supportActionBar
         actionBar!!.title = "Setting"

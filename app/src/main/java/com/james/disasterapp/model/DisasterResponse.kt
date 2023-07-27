@@ -52,20 +52,11 @@ data class Output(
 
 data class ReportData(
 
-	@field:SerializedName("personLocation")
-	val personLocation: PersonLocation? = null,
-
-	@field:SerializedName("fireLocation")
-	val fireLocation: FireLocation? = null,
-
 	@field:SerializedName("report_type")
 	val reportType: String? = null,
 
-	@field:SerializedName("fireRadius")
-	val fireRadius: FireRadius? = null,
-
-	@field:SerializedName("fireDistance")
-	val fireDistance: Any? = null
+	@field:SerializedName("flood_depth")
+	val floodDepth: Int? = null,
 )
 
 data class Tags(
