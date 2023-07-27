@@ -7,6 +7,7 @@
 
 
     <FrameLayout
+        android:id="@+id/frameLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -23,15 +24,15 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent">
 
 
             <android.widget.SearchView
                 android:id="@+id/searchView"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
                 android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
                 android:layout_marginEnd="10dp"
                 android:background="@drawable/searchview_background"
                 android:iconifiedByDefault="false"
@@ -43,49 +44,75 @@
                 app:layout_constraintWidth_percent="0.7" />
 
 
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/fab_filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/round_filter_alt_24"
-                    android:outlineSpotShadowColor="@color/white"
-                    android:layout_marginEnd="10dp"
-                    android:layout_gravity="end|center_vertical"
-                    android:backgroundTint="@color/white"
-                    app:backgroundTint="@color/white"
-                    android:tint="@color/white"
-                    app:fabSize="mini"
-                    app:layout_constraintStart_toEndOf="@id/searchView"
-                    app:layout_constraintTop_toTopOf="@id/searchView"
-                    app:layout_constraintBottom_toBottomOf="@id/searchView"/>
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab_filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="10dp"
+                android:backgroundTint="?attr/colorSurface"
+                android:outlineSpotShadowColor="@color/white"
+                android:src="@drawable/round_filter_alt_24"
+                android:tint="?attr/colorSurface"
+                app:backgroundTint="?attr/colorSurface"
+                app:fabSize="mini"
+                app:layout_constraintBottom_toBottomOf="@id/searchView"
+                app:layout_constraintStart_toEndOf="@id/searchView"
+                app:layout_constraintTop_toTopOf="@id/searchView"
+                app:tint="?attr/colorOnBackground" />
 
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/fab_setting"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end|center_vertical"
-                    android:layout_marginEnd="10dp"
-                    android:src="@drawable/round_settings_24"
-                    app:backgroundTint="@color/white"
-                    android:outlineSpotShadowColor="@color/white"
-                    android:tint="@color/white"
-                    android:backgroundTint="@color/white"
-                    app:fabSize="mini"
-                    app:layout_constraintStart_toEndOf="@id/fab_filter"
-                    app:layout_constraintTop_toTopOf="@id/fab_filter"
-                    app:layout_constraintBottom_toBottomOf="@id/fab_filter" />
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab_setting"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="10dp"
+                android:backgroundTint="?attr/colorSurface"
+                android:outlineSpotShadowColor="@color/white"
+                android:src="@drawable/round_settings_24"
+                android:tint="?attr/colorSurface"
+                app:backgroundTint="?attr/colorSurface"
+                app:fabSize="mini"
+                app:layout_constraintBottom_toBottomOf="@id/fab_filter"
+                app:layout_constraintStart_toEndOf="@id/fab_filter"
+                app:layout_constraintTop_toTopOf="@id/fab_filter"
+                app:tint="?attr/colorOnBackground" />
 
-
-
+            <TextView
+                android:id="@+id/tv_filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/filter_background"
+                android:clickable="true"
+                android:onClick="onTextViewClick"
+                android:padding="4dp"
+                android:text="No Filter"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="@id/searchView"
+                app:layout_constraintTop_toBottomOf="@id/searchView" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/loading_marker"
+            style="Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_gravity="center"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:visibility="gone"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/animation_lklakq64"
+            tools:visibility="visible" />
 
 
     </FrameLayout>
 
 
-    <include layout="@layout/bottom_sheet" />
+    <include
+        android:id="@+id/bottom_sheet"
+        layout="@layout/bottom_sheet" />
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

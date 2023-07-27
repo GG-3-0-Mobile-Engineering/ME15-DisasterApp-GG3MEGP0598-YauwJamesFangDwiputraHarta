@@ -14,4 +14,8 @@ class MainViewModel() : ViewModel() {
     fun getSearchingDisaster(admin : String) : LiveData<ResultCustom<List<GeometriesItem?>?>> {
         return mRepository.getSearchingDisaster(admin)
     }
+
+    fun getFilterDisaster(disaster : String) : LiveData<ResultCustom<List<GeometriesItem?>?>> {
+        return mRepository.getFilterDisaster(disaster)
+    }
 }

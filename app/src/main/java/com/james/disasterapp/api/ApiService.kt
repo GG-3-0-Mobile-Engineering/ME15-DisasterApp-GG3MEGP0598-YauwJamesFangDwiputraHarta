@@ -15,4 +15,9 @@ interface ApiService {
         @Query("admin") admin : String
     ) : DisasterResponse
 
+    @GET ("reports?timeperiod=604800")
+    suspend fun getFilterDisaster(
+        @Query("disaster") disaster : String
+    ) : DisasterResponse
+
 }

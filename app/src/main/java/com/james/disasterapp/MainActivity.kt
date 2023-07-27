@@ -4,13 +4,13 @@ import android.app.SearchManager
 import android.content.Intent
 import android.database.Cursor
 import android.database.MatrixCursor
-import android.opengl.Visibility
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.BaseColumns
 import android.util.Log
 import android.view.View
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.MutableLiveData
@@ -43,9 +43,31 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var disasterAdapter: DisasterAdapter
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<ConstraintLayout>
     private var isSearchEmpty: MutableLiveData<Boolean> = MutableLiveData(true)
-    private var query = MutableLiveData("")
+    private var isFilterEmpty: MutableLiveData<Boolean> = MutableLiveData(true)
+    private var querySearch: MutableLiveData<String> = MutableLiveData("")
+    private var queryFilter = MutableLiveData("")
     private val markersList: MutableList<Marker> = mutableListOf()
-    private lateinit var province_filter: String
+
+    var province_filter: String? = null
+
+    private val resultLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == FilterActivity.RESULT_CODE && result.data != null) {
+            val selectedValue =
+                result.data?.getStringExtra(FilterActivity.EXTRA_SELECTED_VALUE)
+            queryFilter.value = selectedValue
+            isFilterEmpty.value = false
+//            isSearchEmpty.value = true
+            binding.searchView.setQuery("All", false)
+            binding.tvFilter.text = "$selectedValue x"
+            binding.tvFilter.visibility = View.VISIBLE
+            listDisaster(true, false, queryFilter = selectedValue)
+
+//            query.value = selectedValue!!
+
+        }
+    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,96 +100,124 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
+        Log.d("testing12", "${isSearchEmpty.value} dan ${isFilterEmpty.value}")
         binding.fabSetting.setOnClickListener {
             val intentToSetting = Intent(this, SettingActivity::class.java)
+            intentToSetting.flags =
+                Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             startActivity(intentToSetting)
+            binding.searchView.setQuery(null, false)
         }
 
 
         binding.fabFilter.setOnClickListener {
-            val intent = Intent(this, FilterActivity::class.java)
-            startActivity(intent)
+            val moveForResultIntent = Intent(this@MainActivity, FilterActivity::class.java)
+            resultLauncher.launch(moveForResultIntent)
         }
 
 
-        province_filter = AdminArea.PROVINCE
+//        if (intent.getStringExtra(LOCATION) != null) {
+//            isFilterEmpty.value = false
+//            queryFilter.value = intent.getStringExtra(LOCATION)!!
+//            query.value = queryFilter.value
+//        }
+
+//        if (queryFilter.value == "all") {
+//            isFilterEmpty.value = true
+//        }
 
 
+//        if (isFilterEmpty.value!! == false) {
+//            mainViewModel.getSearchingDisaster(queryFilter.value!!).observe(this@MainActivity) {
+//                if (it != null) {
+//                    when (it) {
+//                        is ResultCustom.Loading -> {
+//                            binding.bottomSheet.rvItem.visibility = View.GONE
+//                            binding.bottomSheet.noData.visibility = View.GONE
+////                            Toast.makeText(
+////                                this@MainActivity,
+////                                ("loading"),
+////                                Toast.LENGTH_LONG
+////                            ).show()
+//                        }
+//
+//                        is ResultCustom.Success ->
+//                            if (it.data!!.isNotEmpty()) {
+//                                binding.bottomSheet.rvItem.visibility = View.VISIBLE
+//                                binding.bottomSheet.noData.visibility = View.GONE
+//                                mMap.clear()
+//                                var listDisasterArea = ArrayList<Properties>()
+//                                query.value = queryFilter.value
+//                                isSearchEmpty.value = false
+//                                it.data.forEach { disaster ->
+//                                    listDisasterArea.add(
+//                                        Properties(
+//                                            disaster?.properties?.imageUrl,
+//                                            disaster?.properties?.disasterType,
+//                                            disaster?.properties?.text,
+//                                        )
+//                                    )
+//                                    Log.d(
+//                                        "kok ga muncul",
+//                                        "${disaster?.properties?.imageUrl}"
+//                                    )
+//                                }
+//                                val bottomSheet =
+//                                    findViewById<ConstraintLayout>(R.id.bottom_sheet)
+//                                bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+//                                bottomSheetBehavior.peekHeight = 65
+//                                bottomSheetBehavior.isFitToContents = false
+//                                bottomSheetBehavior.halfExpandedRatio = 0.3f
+//                                bottomSheetBehavior.state =
+//                                    BottomSheetBehavior.STATE_HALF_EXPANDED
+//                                recyclerView = findViewById(R.id.rv_item)
+//                                disasterAdapter = DisasterAdapter(listDisasterArea)
+//                                recyclerView.adapter = disasterAdapter
+//
+//
+//                            } else {
+//                                isSearchEmpty.value = false
+//                                Toast.makeText(
+//                                    this@MainActivity,
+//                                    ("no data filter"),
+//                                    Toast.LENGTH_LONG
+//                                ).show()
+//                            }
+//
+//                        is ResultCustom.Error -> {
+////                            Toast.makeText(
+////                                this@MainActivity,
+////                                ("tidak ada user filter"),
+////                                Toast.LENGTH_LONG
+////                            ).show()
+//                            val bottomSheet =
+//                                findViewById<ConstraintLayout>(R.id.bottom_sheet)
+//                            bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+//                            bottomSheetBehavior.peekHeight = 65
+//                            bottomSheetBehavior.isFitToContents = false
+//                            bottomSheetBehavior.halfExpandedRatio = 0.3f
+//                            bottomSheetBehavior.state =
+//                                BottomSheetBehavior.STATE_HALF_EXPANDED
+//                            binding.bottomSheet.rvItem.visibility = View.GONE
+//                            binding.bottomSheet.noData.visibility = View.VISIBLE
+//
+//                        }
+//
+//                    }
+//                } else {
+//                    mMap.clear()
+//                    isSearchEmpty.value = false
+//                    Log.d("cobalihat", "${isSearchEmpty.value}")
+//                }
+//            }
+//        }
 
-        if (intent.getStringExtra(LOCATION) != null) {
-            province_filter = intent.getStringExtra(LOCATION)!!
-            Log.d("location222", "${province_filter}")
+//        showBottomSheet()
+
+
+        if (isSearchEmpty.value == true && isFilterEmpty.value == true) {
+            listDisaster(true, true)
         }
-
-
-
-        if (province_filter != null) {
-            mainViewModel.getSearchingDisaster(province_filter).observe(this@MainActivity) {
-                if (it != null) {
-                    when (it) {
-                        is ResultCustom.Loading -> Toast.makeText(
-                            this@MainActivity,
-                            ("loading"),
-                            Toast.LENGTH_LONG
-                        ).show()
-
-                        is ResultCustom.Success ->
-                            if (it.data!!.isNotEmpty()) {
-                                mMap.clear()
-                                var listDisasterArea = ArrayList<Properties>()
-                                query.value = province_filter
-                                isSearchEmpty.value = false
-                                it.data.forEach { disaster ->
-                                    listDisasterArea.add(
-                                        Properties(
-                                            disaster?.properties?.imageUrl,
-                                            disaster?.properties?.disasterType
-                                        )
-                                    )
-                                    Log.d(
-                                        "kok ga muncul",
-                                        "${disaster?.properties?.imageUrl}"
-                                    )
-                                }
-                                val bottomSheet =
-                                    findViewById<ConstraintLayout>(R.id.bottom_sheet)
-                                bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
-                                bottomSheetBehavior.peekHeight = 65
-                                bottomSheetBehavior.isFitToContents = false
-                                bottomSheetBehavior.halfExpandedRatio = 0.3f
-                                bottomSheetBehavior.state =
-                                    BottomSheetBehavior.STATE_HALF_EXPANDED
-                                recyclerView = findViewById(R.id.rv_item)
-                                disasterAdapter = DisasterAdapter(listDisasterArea)
-                                recyclerView.adapter = disasterAdapter
-
-
-                            } else {
-                                isSearchEmpty.value = false
-                                Toast.makeText(
-                                    this@MainActivity,
-                                    ("no data filter"),
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-
-                        is ResultCustom.Error -> {
-                            Toast.makeText(
-                                this@MainActivity,
-                                ("${it.error}"),
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-
-                    }
-                } else {
-                    mMap.clear()
-                    isSearchEmpty.value = false
-                }
-            }
-        }
-
-        showBottomSheet()
 
         searchView()
 
@@ -176,25 +226,32 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun showBottomSheet() {
 
-        if (province_filter == "all") {
+        if (isFilterEmpty.value!!) {
             isSearchEmpty.value = true
             mainViewModel.getDisaster().observe(this) {
                 if (it != null) {
                     when (it) {
-                        is ResultCustom.Loading -> Toast.makeText(
-                            this,
-                            ("loading"),
-                            Toast.LENGTH_LONG
-                        ).show()
-                        is ResultCustom.Success ->
+                        is ResultCustom.Loading -> {
+                            binding.bottomSheet.rvItem.visibility = View.GONE
+                            binding.bottomSheet.noData.visibility = View.GONE
+//                            Toast.makeText(
+//                                this,
+//                                ("loading"),
+//                                Toast.LENGTH_LONG
+//                            ).show()
+                        }
 
+                        is ResultCustom.Success ->
                             if (it.data!!.isNotEmpty()) {
+                                binding.bottomSheet.rvItem.visibility = View.VISIBLE
+                                binding.bottomSheet.noData.visibility = View.GONE
                                 var listDisaster = ArrayList<Properties>()
                                 it.data.forEach { disaster ->
                                     listDisaster.add(
                                         Properties(
                                             disaster?.properties?.imageUrl,
-                                            disaster?.properties?.disasterType
+                                            disaster?.properties?.disasterType,
+                                            disaster?.properties?.text,
                                         )
                                     )
 //                                Log.d("kok ga muncul", "${disaster?.properties?.imageUrl}")
@@ -209,19 +266,21 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                                 disasterAdapter = DisasterAdapter(listDisaster)
                                 recyclerView.adapter = disasterAdapter
                             } else {
-                                Toast.makeText(
-                                    this,
-                                    ("no data"),
-                                    Toast.LENGTH_LONG
-                                ).show()
+//                                Toast.makeText(
+//                                    this,
+//                                    ("no data"),
+//                                    Toast.LENGTH_LONG
+//                                ).show()
                             }
 
                         is ResultCustom.Error -> {
-                            Toast.makeText(
-                                this,
-                                ("terjadi kesalahan"),
-                                Toast.LENGTH_LONG
-                            ).show()
+//                            Toast.makeText(
+//                                this,
+//                                ("terjadi kesalahan"),
+//                                Toast.LENGTH_LONG
+//                            ).show()
+                            binding.bottomSheet.rvItem.visibility = View.GONE
+                            binding.bottomSheet.noData.visibility = View.VISIBLE
                         }
 
                     }
@@ -247,9 +306,20 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String?): Boolean {
                 if (newText.isNullOrEmpty()) {
-                    showBottomSheet()
+                    listDisaster(true, true)
                     isSearchEmpty.value = true
+//                    isFilterEmpty.value = false
+//                    isSearchEmpty.value = true
+//                    query.value = "all"
                 }
+                binding.tvFilter.visibility = View.GONE
+
+
+//                if (queryFilter.value != "all") {
+//                    isSearchEmpty.value = false
+//                    isFilterEmpty.value = true
+////                    query.value = "all"
+//                }
 
                 val cursor =
                     MatrixCursor(
@@ -276,80 +346,93 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     AdminArea.suggestions.find { it.first.lowercase() == newQuery?.lowercase() }
                 val idArea = matchingPair?.second
 
+
+                querySearch.value = idArea?:""
+
+                listDisaster(false, true, querySearch = querySearch.value)
+
+                isSearchEmpty.value = false
                 // Do whatever you want with selection text
 
-                if (idArea != null) {
-                    query.value = idArea
-                    isSearchEmpty.value = false
-                    Log.d("id area", "${idArea}")
-
-                    mainViewModel.getSearchingDisaster(idArea!!).observe(this@MainActivity) {
-                        if (it != null) {
-                            when (it) {
-                                is ResultCustom.Loading -> Toast.makeText(
-                                    this@MainActivity,
-                                    ("loading"),
-                                    Toast.LENGTH_LONG
-                                ).show()
-
-                                is ResultCustom.Success ->
-
-                                    if (it.data!!.isNotEmpty()) {
-                                        var listDisasterArea = ArrayList<Properties>()
-                                        it.data.forEach { disaster ->
-                                            listDisasterArea.add(
-                                                Properties(
-                                                    disaster?.properties?.imageUrl,
-                                                    disaster?.properties?.disasterType
-                                                )
-                                            )
-                                            Log.d(
-                                                "kok ga muncul",
-                                                "${disaster?.properties?.imageUrl}"
-                                            )
-                                        }
-                                        val bottomSheet =
-                                            findViewById<ConstraintLayout>(R.id.bottom_sheet)
-                                        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
-                                        bottomSheetBehavior.peekHeight = 65
-                                        bottomSheetBehavior.isFitToContents = false
-                                        bottomSheetBehavior.halfExpandedRatio = 0.3f
-                                        bottomSheetBehavior.state =
-                                            BottomSheetBehavior.STATE_HALF_EXPANDED
-                                        recyclerView = findViewById(R.id.rv_item)
-                                        disasterAdapter = DisasterAdapter(listDisasterArea)
-                                        recyclerView.adapter = disasterAdapter
-
-
-                                    } else {
-                                        Toast.makeText(
-                                            this@MainActivity,
-                                            ("no data"),
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                    }
-
-                                is ResultCustom.Error -> {
-                                    Toast.makeText(
-                                        this@MainActivity,
-                                        ("${it.error}"),
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
-
-                            }
-                        }
-                    }
-                } else {
-                    mMap.clear()
-                    Toast.makeText(
-                        this@MainActivity,
-                        ("Area tidak ditemukan"),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-
-
+//                if (idArea != null) {
+//                    query.value = idArea
+//                    isSearchEmpty.value = false
+//                    Log.d("id area", "${idArea}")
+//
+//                    mainViewModel.getSearchingDisaster(idArea!!).observe(this@MainActivity) {
+//                        if (it != null) {
+//                            when (it) {
+//                                is ResultCustom.Loading -> {
+//                                    binding.bottomSheet.rvItem.visibility = View.GONE
+//                                    binding.bottomSheet.noData.visibility = View.GONE
+////                                    Toast.makeText(
+////                                        this@MainActivity,
+////                                        ("loading"),
+////                                        Toast.LENGTH_LONG
+////                                    ).show()
+//                                }
+//
+//                                is ResultCustom.Success ->
+//
+//                                    if (it.data!!.isNotEmpty()) {
+//                                        binding.bottomSheet.rvItem.visibility = View.VISIBLE
+//                                        binding.bottomSheet.noData.visibility = View.GONE
+//                                        var listDisasterArea = ArrayList<Properties>()
+//                                        it.data.forEach { disaster ->
+//                                            listDisasterArea.add(
+//                                                Properties(
+//                                                    disaster?.properties?.imageUrl,
+//                                                    disaster?.properties?.disasterType,
+//                                                    disaster?.properties?.text,
+//                                                )
+//                                            )
+//                                            Log.d(
+//                                                "kok ga muncul",
+//                                                "${disaster?.properties?.imageUrl}"
+//                                            )
+//                                        }
+//                                        val bottomSheet =
+//                                            findViewById<ConstraintLayout>(R.id.bottom_sheet)
+//                                        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+//                                        bottomSheetBehavior.peekHeight = 65
+//                                        bottomSheetBehavior.isFitToContents = false
+//                                        bottomSheetBehavior.halfExpandedRatio = 0.3f
+//                                        bottomSheetBehavior.state =
+//                                            BottomSheetBehavior.STATE_HALF_EXPANDED
+//                                        recyclerView = findViewById(R.id.rv_item)
+//                                        disasterAdapter = DisasterAdapter(listDisasterArea)
+//                                        recyclerView.adapter = disasterAdapter
+//
+//
+//                                    } else {
+////                                        Toast.makeText(
+////                                            this@MainActivity,
+////                                            ("no data"),
+////                                            Toast.LENGTH_LONG
+////                                        ).show()
+//                                    }
+//
+//                                is ResultCustom.Error -> {
+//                                    binding.bottomSheet.rvItem.visibility = View.GONE
+//                                    binding.bottomSheet.noData.visibility = View.VISIBLE
+////                                    Toast.makeText(
+////                                        this@MainActivity,
+////                                        (" kesalahan on query text submit"),
+////                                        Toast.LENGTH_LONG
+////                                    ).show()
+//                                }
+//
+//                            }
+//                        }
+//                    }
+//                } else {
+////                    mMap.clear()
+////                    Toast.makeText(
+////                        this@MainActivity,
+////                        ("Area tidak ditemukan"),
+////                        Toast.LENGTH_LONG
+////                    ).show()
+//                }
 
 
                 return true
@@ -367,62 +450,77 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 binding.searchView.setQuery(selection, false)
 
                 // Do whatever you want with selection text
-                query.value = intentData
+                querySearch.value = intentData
+                listDisaster(false, true, querySearch = querySearch.value)
+
                 isSearchEmpty.value = false
-                mainViewModel.getSearchingDisaster(query.value!!).observe(this@MainActivity) {
-                    if (it != null) {
-                        when (it) {
-                            is ResultCustom.Loading -> Toast.makeText(
-                                this@MainActivity,
-                                ("loading"),
-                                Toast.LENGTH_LONG
-                            ).show()
-
-                            is ResultCustom.Success ->
-
-                                if (it.data!!.isNotEmpty()) {
-                                    var listDisasterArea = ArrayList<Properties>()
-                                    it.data.forEach { disaster ->
-                                        listDisasterArea.add(
-                                            Properties(
-                                                disaster?.properties?.imageUrl,
-                                                disaster?.properties?.disasterType
-                                            )
-                                        )
-                                        Log.d("kok ga muncul", "${disaster?.properties?.imageUrl}")
-                                    }
-                                    val bottomSheet =
-                                        findViewById<ConstraintLayout>(R.id.bottom_sheet)
-                                    bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
-                                    bottomSheetBehavior.peekHeight = 65
-                                    bottomSheetBehavior.isFitToContents = false
-                                    bottomSheetBehavior.halfExpandedRatio = 0.3f
-                                    bottomSheetBehavior.state =
-                                        BottomSheetBehavior.STATE_HALF_EXPANDED
-                                    recyclerView = findViewById(R.id.rv_item)
-                                    disasterAdapter = DisasterAdapter(listDisasterArea)
-                                    recyclerView.adapter = disasterAdapter
-
-
-                                } else {
-                                    Toast.makeText(
-                                        this@MainActivity,
-                                        ("no data"),
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
-
-                            is ResultCustom.Error -> {
-                                Toast.makeText(
-                                    this@MainActivity,
-                                    ("${it.error}"),
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-
-                        }
-                    }
-                }
+//                mainViewModel.getSearchingDisaster(query.value!!).observe(this@MainActivity) {
+//                    if (it != null) {
+//                        when (it) {
+//                            is ResultCustom.Loading -> {
+//                                binding.bottomSheet.rvItem.visibility = View.VISIBLE
+//                                binding.bottomSheet.noData.visibility = View.GONE
+////                                Toast.makeText(
+////                                    this@MainActivity,
+////                                    ("loading"),
+////                                    Toast.LENGTH_LONG
+////                                ).show()
+//                            }
+//
+//                            is ResultCustom.Success ->
+//
+//                                if (it.data!!.isNotEmpty()) {
+//                                    binding.bottomSheet.rvItem.visibility = View.VISIBLE
+//                                    binding.bottomSheet.noData.visibility = View.GONE
+//                                    Log.d(
+//                                        "visibilybottom",
+//                                        "${bottomSheetBinding.noData.visibility}"
+//                                    )
+//                                    var listDisasterArea = ArrayList<Properties>()
+//                                    it.data.forEach { disaster ->
+//                                        listDisasterArea.add(
+//                                            Properties(
+//                                                disaster?.properties?.imageUrl,
+//                                                disaster?.properties?.disasterType,
+//                                                disaster?.properties?.text,
+//                                            )
+//                                        )
+//                                        Log.d("kok ga muncul", "${disaster?.properties?.imageUrl}")
+//                                    }
+//                                    val bottomSheet =
+//                                        findViewById<ConstraintLayout>(R.id.bottom_sheet)
+//                                    bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+//                                    bottomSheetBehavior.peekHeight = 65
+//                                    bottomSheetBehavior.isFitToContents = false
+//                                    bottomSheetBehavior.halfExpandedRatio = 0.3f
+//                                    bottomSheetBehavior.state =
+//                                        BottomSheetBehavior.STATE_HALF_EXPANDED
+//                                    recyclerView = findViewById(R.id.rv_item)
+//                                    disasterAdapter = DisasterAdapter(listDisasterArea)
+//                                    recyclerView.adapter = disasterAdapter
+//
+//
+//                                } else {
+////                                    Toast.makeText(
+////                                        this@MainActivity,
+////                                        ("no data"),
+////                                        Toast.LENGTH_LONG
+////                                    ).show()
+//                                }
+//
+//                            is ResultCustom.Error -> {
+//                                binding.bottomSheet.rvItem.visibility = View.GONE
+//                                binding.bottomSheet.noData.visibility = View.GONE
+////                                Toast.makeText(
+////                                    this@MainActivity,
+////                                    ("tidak ada data suggestion"),
+////                                    Toast.LENGTH_LONG
+////                                ).show()
+//                            }
+//
+//                        }
+//                    }
+//                }
 
 
                 return true
@@ -447,85 +545,152 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.uiSettings.isIndoorLevelPickerEnabled = true
         mMap.uiSettings.isCompassEnabled = true
         mMap.uiSettings.isMapToolbarEnabled = true
-
+        Log.d("filterEmpty", "${isFilterEmpty.value}")
+//        if (!isFilterEmpty.value!!) {
+//            isSearchEmpty.value = false
+//        }
         isSearchEmpty.observe(this) { isSearchEmpty ->
-            if (isSearchEmpty) {
-                mMap.clear()
-                mainViewModel.getDisaster().observe(this) {
-                    if (it != null) {
-                        when (it) {
-                            is ResultCustom.Loading -> Toast.makeText(
-                                this,
-                                ("loading"),
-                                Toast.LENGTH_LONG
-                            ).show()
 
-                            is ResultCustom.Success -> {
-                                if (it.data!!.isNotEmpty()) {
-                                    mMap.clear()
+                if (isSearchEmpty == true ) {
+                    mMap.clear()
+                    mainViewModel.getDisaster().observe(this) {
+                        if (it != null) {
+                            when (it) {
+                                is ResultCustom.Loading -> binding.loadingMarker.visibility = View.VISIBLE
+//                                Toast.makeText(
+//                                this,
+//                                ("loading"),
+//                                Toast.LENGTH_LONG
+//                            ).show()
 
-                                    val boundsBuilder = LatLngBounds.Builder()
-                                    it.data.forEach { disaster ->
-                                        val latLng =
-                                            LatLng(
-                                                disaster!!.coordinates[1],
-                                                disaster.coordinates[0]
+                                is ResultCustom.Success -> {
+                                    if (it.data!!.isNotEmpty()) {
+                                        binding.loadingMarker.visibility = View.GONE
+                                        mMap.clear()
+
+                                        val boundsBuilder = LatLngBounds.Builder()
+                                        it.data.forEach { disaster ->
+                                            val latLng =
+                                                LatLng(
+                                                    disaster!!.coordinates[1],
+                                                    disaster.coordinates[0]
+                                                )
+                                            mMap.addMarker(
+                                                MarkerOptions()
+                                                    .position(latLng)
+                                                    .title("${disaster.properties?.disasterType}")
+                                                    .snippet("${disaster.properties?.text}")
                                             )
-                                        mMap.addMarker(
-                                            MarkerOptions()
-                                                .position(latLng)
-                                                .title("${disaster.properties?.disasterType}")
-                                                .snippet("${disaster.properties?.text}")
+                                            Log.d(
+                                                "coba lagi yuk",
+                                                "${disaster.properties?.disasterType}"
+                                            )
+                                            boundsBuilder.include(latLng)
+                                        }
+                                        val bounds: LatLngBounds = boundsBuilder.build()
+                                        mMap.animateCamera(
+                                            CameraUpdateFactory.newLatLngBounds(
+                                                bounds,
+                                                resources.displayMetrics.widthPixels,
+                                                resources.displayMetrics.heightPixels,
+                                                300
+                                            )
                                         )
-                                        Log.d(
-                                            "coba lagi yuk",
-                                            "${disaster.properties?.disasterType}"
-                                        )
-                                        boundsBuilder.include(latLng)
                                     }
-                                    val bounds: LatLngBounds = boundsBuilder.build()
-                                    mMap.animateCamera(
-                                        CameraUpdateFactory.newLatLngBounds(
-                                            bounds,
-                                            resources.displayMetrics.widthPixels,
-                                            resources.displayMetrics.heightPixels,
-                                            300
-                                        )
-                                    )
-                                } else {
-                                    Toast.makeText(this, "no data", Toast.LENGTH_LONG).show()
 
+                                }
+                                is ResultCustom.Error -> {
+                                    binding.loadingMarker.visibility = View.GONE
+                                    mMap.clear()
+                                    Toast.makeText(this, "tidak ada data di map", Toast.LENGTH_LONG)
+                                        .show()
                                 }
 
                             }
-                            is ResultCustom.Error -> {
-                                Toast.makeText(this, it.error, Toast.LENGTH_LONG).show()
-                            }
+                        }
 
+                    }
+                } else if (isSearchEmpty == false) {
+
+                    mMap.clear()
+                    GlobalScope.launch {
+                        delay(2000L)
+                    }
+
+                    val newQuery: String? = querySearch.value
+
+                    mainViewModel.getSearchingDisaster(newQuery!!).observe(this@MainActivity) {
+                        if (it != null) {
+                            when (it) {
+                                is ResultCustom.Loading -> binding.loadingMarker.visibility = View.VISIBLE
+
+                                is ResultCustom.Success -> {
+                                    binding.loadingMarker.visibility = View.GONE
+                                    if (it.data!!.isNotEmpty()) {
+                                        mMap.clear()
+
+                                        val boundsBuilder = LatLngBounds.Builder()
+                                        it.data.forEach { disaster ->
+                                            val latLng =
+                                                LatLng(
+                                                    disaster!!.coordinates[1],
+                                                    disaster.coordinates[0]
+                                                )
+                                            val marker = mMap.addMarker(
+                                                MarkerOptions()
+                                                    .position(latLng)
+                                                    .title("${disaster.properties?.disasterType}")
+                                                    .snippet("${disaster.properties?.text}")
+                                            )
+                                            Log.d(
+                                                "coba lagi yuk",
+                                                "${disaster.properties?.disasterType}"
+                                            )
+                                            boundsBuilder.include(latLng)
+                                            markersList.add(marker!!)
+                                        }
+                                        val bounds: LatLngBounds = boundsBuilder.build()
+                                        mMap.animateCamera(
+                                            CameraUpdateFactory.newLatLngBounds(
+                                                bounds,
+                                                resources.displayMetrics.widthPixels,
+                                                resources.displayMetrics.heightPixels,
+                                                100
+                                            )
+
+                                        )
+                                    }
+                                }
+                                is ResultCustom.Error -> {
+                                    binding.loadingMarker.visibility = View.GONE
+                                    mMap.clear()
+                                }
+
+                            }
                         }
                     }
 
                 }
-            } else {
+        }
+
+        isFilterEmpty.observe(this){ isFilterEmpty ->
+            if (isFilterEmpty == false){
 
                 mMap.clear()
-                GlobalScope.launch {
-                    delay(2000L)
-                }
+//                GlobalScope.launch {
+//                    delay(2000L)
+//                }
 
-                val newQuery: String? = query.value
+                val newQuery: String? = queryFilter.value
 
-                mainViewModel.getSearchingDisaster(newQuery!!).observe(this@MainActivity) {
+                mainViewModel.getFilterDisaster(newQuery!!).observe(this@MainActivity) {
                     if (it != null) {
                         when (it) {
-                            is ResultCustom.Loading -> Toast.makeText(
-                                this@MainActivity,
-                                ("loading"),
-                                Toast.LENGTH_LONG
-                            ).show()
+                            is ResultCustom.Loading -> binding.loadingMarker.visibility = View.VISIBLE
 
                             is ResultCustom.Success -> {
                                 if (it.data!!.isNotEmpty()) {
+                                    binding.loadingMarker.visibility = View.GONE
                                     mMap.clear()
 
                                     val boundsBuilder = LatLngBounds.Builder()
@@ -558,63 +723,425 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                                         )
 
                                     )
-                                } else {
-                                    mMap.clear()
-                                    Toast.makeText(
-                                        this@MainActivity,
-                                        "no data",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-
                                 }
                             }
                             is ResultCustom.Error -> {
+                                binding.loadingMarker.visibility = View.GONE
                                 mMap.clear()
-                                Toast.makeText(this@MainActivity, it.error, Toast.LENGTH_LONG)
-                                    .show()
                             }
 
                         }
-                    } else {
-                        mMap.clear()
                     }
                 }
             }
+
         }
-
-
     }
+
+
+//            if (isSearchEmpty) {
+//                mMap.clear()
+//                mainViewModel.getDisaster().observe(this) {
+//                    if (it != null) {
+//                        when (it) {
+//                            is ResultCustom.Loading -> true
+////                                Toast.makeText(
+////                                this,
+////                                ("loading"),
+////                                Toast.LENGTH_LONG
+////                            ).show()
+//
+//                            is ResultCustom.Success -> {
+//                                if (it.data!!.isNotEmpty()) {
+//                                    mMap.clear()
+//
+//                                    val boundsBuilder = LatLngBounds.Builder()
+//                                    it.data.forEach { disaster ->
+//                                        val latLng =
+//                                            LatLng(
+//                                                disaster!!.coordinates[1],
+//                                                disaster.coordinates[0]
+//                                            )
+//                                        mMap.addMarker(
+//                                            MarkerOptions()
+//                                                .position(latLng)
+//                                                .title("${disaster.properties?.disasterType}")
+//                                                .snippet("${disaster.properties?.text}")
+//                                        )
+//                                        Log.d(
+//                                            "coba lagi yuk",
+//                                            "${disaster.properties?.disasterType}"
+//                                        )
+//                                        boundsBuilder.include(latLng)
+//                                    }
+//                                    val bounds: LatLngBounds = boundsBuilder.build()
+//                                    mMap.animateCamera(
+//                                        CameraUpdateFactory.newLatLngBounds(
+//                                            bounds,
+//                                            resources.displayMetrics.widthPixels,
+//                                            resources.displayMetrics.heightPixels,
+//                                            300
+//                                        )
+//                                    )
+//                                }
+//
+//                            }
+//                            is ResultCustom.Error -> {
+//                                Toast.makeText(this, "tidak ada data di map", Toast.LENGTH_LONG)
+//                                    .show()
+//                            }
+//
+//                        }
+//                    }
+//
+//                }
+//            } else {
+//
+//                mMap.clear()
+//                GlobalScope.launch {
+//                    delay(2000L)
+//                }
+//
+//                val newQuery: String? = query.value
+//
+//                mainViewModel.getSearchingDisaster(newQuery!!).observe(this@MainActivity) {
+//                    if (it != null) {
+//                        when (it) {
+//                            is ResultCustom.Loading -> true
+////                                Toast.makeText(
+////                                this@MainActivity,
+////                                ("loading"),
+////                                Toast.LENGTH_LONG
+////                            ).show()
+//
+//                            is ResultCustom.Success -> {
+//                                if (it.data!!.isNotEmpty()) {
+//                                    mMap.clear()
+//
+//                                    val boundsBuilder = LatLngBounds.Builder()
+//                                    it.data.forEach { disaster ->
+//                                        val latLng =
+//                                            LatLng(
+//                                                disaster!!.coordinates[1],
+//                                                disaster.coordinates[0]
+//                                            )
+//                                        val marker = mMap.addMarker(
+//                                            MarkerOptions()
+//                                                .position(latLng)
+//                                                .title("${disaster.properties?.disasterType}")
+//                                                .snippet("${disaster.properties?.text}")
+//                                        )
+//                                        Log.d(
+//                                            "coba lagi yuk",
+//                                            "${disaster.properties?.disasterType}"
+//                                        )
+//                                        boundsBuilder.include(latLng)
+//                                        markersList.add(marker!!)
+//                                    }
+//                                    val bounds: LatLngBounds = boundsBuilder.build()
+//                                    mMap.animateCamera(
+//                                        CameraUpdateFactory.newLatLngBounds(
+//                                            bounds,
+//                                            resources.displayMetrics.widthPixels,
+//                                            resources.displayMetrics.heightPixels,
+//                                            100
+//                                        )
+//
+//                                    )
+//                                }
+//                            }
+//                            is ResultCustom.Error -> {
+//                                mMap.clear()
+////                                Toast.makeText(this@MainActivity, "tidak ada data di map", Toast.LENGTH_LONG)
+////                                    .show()
+//                            }
+//
+//                        }
+//                    } else {
+//                        mMap.clear()
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+//    private fun saveLiveDataValuesToSharedPreferences() {
+//        val sharedPref = getPreferences(MODE_PRIVATE)
+//        val editor = sharedPref.edit()
+//
+//        // Simpan nilai isSearchEmpty
+//        editor.putBoolean("IS_SEARCH_EMPTY", isSearchEmpty.value!!)
+//
+//        // Simpan nilai isFilterEmpty
+//        editor.putBoolean("IS_FILTER_EMPTY", isFilterEmpty.value!!)
+//
+////        // Simpan nilai query
+////        editor.putString("QUERY", query.value)
+//
+//        // Simpan nilai queryFilter
+////        editor.putString("QUERY_FILTER", queryFilter.value)
+//
+//        editor.apply()
+//    }
+//
+//    override fun onPause() {
+//        super.onPause()
+//        saveLiveDataValuesToSharedPreferences()
+//    }
+//
+//    private fun restoreLiveDataValuesFromSharedPreferences() {
+//        val sharedPref = getPreferences(MODE_PRIVATE)
+//
+//        // Mengembalikan nilai isSearchEmpty
+//        isSearchEmpty.value = sharedPref.getBoolean("IS_SEARCH_EMPTY", true)
+//
+//        // Mengembalikan nilai isFilterEmpty
+//        isFilterEmpty.value = sharedPref.getBoolean("IS_FILTER_EMPTY", true)
+//
+////        // Mengembalikan nilai query
+////        query.value = sharedPref.getString("QUERY", "")
+//
+//        // Mengembalikan nilai queryFilter
+////        queryFilter.value = sharedPref.getString("QUERY_FILTER", "")
+//    }
+//
+//    override fun onResume() {
+//        super.onResume()
+//        restoreLiveDataValuesFromSharedPreferences()
+//    }
 
     companion object {
         const val LOCATION = "location"
     }
 
-//    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-//        menuInflater.inflate(R.menu.map_options, menu)
-//        return true
-//    }
+    private fun listDisaster(
+        isSearchEmpty: Boolean? = null,
+        isFilterEmpty: Boolean? = null,
+        querySearch: String? = null,
+        queryFilter: String? = null
+    ) {
 
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        return when (item.itemId) {
-//            R.id.normal_type -> {
-//                mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
-//                true
-//            }
-//            R.id.satellite_type -> {
-//                mMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
-//                true
-//            }
-//            R.id.terrain_type -> {
-//                mMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
-//                true
-//            }
-//            R.id.hybrid_type -> {
-//                mMap.mapType = GoogleMap.MAP_TYPE_HYBRID
-//                true
-//            }
-//            else -> {
-//                super.onOptionsItemSelected(item)
-//            }
-//        }
-//    }
+        Log.d("capekk", "$isFilterEmpty dan $isFilterEmpty")
+        if (isSearchEmpty == true && isFilterEmpty == true) {
+            mainViewModel.getDisaster().observe(this) {
+                if (it != null) {
+                    when (it) {
+                        is ResultCustom.Loading -> {
+                            binding.bottomSheet.loadingList.visibility = View.VISIBLE
+                            binding.bottomSheet.rvItem.visibility = View.GONE
+                            binding.bottomSheet.noData.visibility = View.GONE
+//                            Toast.makeText(
+//                                this,
+//                                ("loading"),
+//                                Toast.LENGTH_LONG
+//                            ).show()
+                        }
+
+                        is ResultCustom.Success ->
+                            if (it.data!!.isNotEmpty()) {
+                                binding.bottomSheet.loadingList.visibility = View.GONE
+                                binding.bottomSheet.rvItem.visibility = View.VISIBLE
+                                binding.bottomSheet.noData.visibility = View.GONE
+                                var listDisaster = ArrayList<Properties>()
+                                it.data.forEach { disaster ->
+                                    listDisaster.add(
+                                        Properties(
+                                            disaster?.properties?.imageUrl,
+                                            disaster?.properties?.disasterType,
+                                            disaster?.properties?.text,
+                                        )
+                                    )
+//                                Log.d("kok ga muncul", "${disaster?.properties?.imageUrl}")
+                                }
+                                val bottomSheet =
+                                    findViewById<ConstraintLayout>(R.id.bottom_sheet)
+                                bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+                                bottomSheetBehavior.peekHeight = 65
+                                bottomSheetBehavior.isFitToContents = false
+                                bottomSheetBehavior.halfExpandedRatio = 0.3f
+                                bottomSheetBehavior.state =
+                                    BottomSheetBehavior.STATE_HALF_EXPANDED
+                                recyclerView = findViewById(R.id.rv_item)
+                                disasterAdapter = DisasterAdapter(listDisaster)
+                                recyclerView.adapter = disasterAdapter
+                            }
+
+                        is ResultCustom.Error -> {
+//                            Toast.makeText(
+//                                this,
+//                                ("terjadi kesalahan"),
+//                                Toast.LENGTH_LONG
+//                            ).show()
+                            binding.bottomSheet.loadingList.visibility = View.GONE
+                            binding.bottomSheet.rvItem.visibility = View.GONE
+                            binding.bottomSheet.noData.visibility = View.VISIBLE
+                        }
+
+                    }
+                }
+            }
+        } else if (isSearchEmpty == false && isFilterEmpty == true) {
+            mainViewModel.getSearchingDisaster(querySearch!!).observe(this@MainActivity) {
+                if (it != null) {
+                    when (it) {
+                        is ResultCustom.Loading -> {
+                            binding.bottomSheet.loadingList.visibility = View.VISIBLE
+                            binding.bottomSheet.rvItem.visibility = View.GONE
+                            binding.bottomSheet.noData.visibility = View.GONE
+//                            Toast.makeText(
+//                                this@MainActivity,
+//                                ("loading"),
+//                                Toast.LENGTH_LONG
+//                            ).show()
+                        }
+
+                        is ResultCustom.Success ->
+                            if (it.data!!.isNotEmpty()) {
+                                binding.bottomSheet.loadingList.visibility = View.GONE
+                                binding.bottomSheet.rvItem.visibility = View.VISIBLE
+                                binding.bottomSheet.noData.visibility = View.GONE
+//                                mMap.clear()
+                                var listDisasterArea = ArrayList<Properties>()
+
+                                it.data.forEach { disaster ->
+                                    listDisasterArea.add(
+                                        Properties(
+                                            disaster?.properties?.imageUrl,
+                                            disaster?.properties?.disasterType,
+                                            disaster?.properties?.text,
+                                        )
+                                    )
+                                    Log.d(
+                                        "kok ga muncul",
+                                        "${disaster?.properties?.imageUrl}"
+                                    )
+                                }
+                                val bottomSheet =
+                                    findViewById<ConstraintLayout>(R.id.bottom_sheet)
+                                bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+                                bottomSheetBehavior.peekHeight = 65
+                                bottomSheetBehavior.isFitToContents = false
+                                bottomSheetBehavior.halfExpandedRatio = 0.3f
+                                bottomSheetBehavior.state =
+                                    BottomSheetBehavior.STATE_HALF_EXPANDED
+                                recyclerView = findViewById(R.id.rv_item)
+                                disasterAdapter = DisasterAdapter(listDisasterArea)
+                                recyclerView.adapter = disasterAdapter
+
+
+                            }
+
+                        is ResultCustom.Error -> {
+//                            Toast.makeText(
+//                                this@MainActivity,
+//                                ("tidak ada user filter"),
+//                                Toast.LENGTH_LONG
+//                            ).show()
+                            val bottomSheet =
+                                findViewById<ConstraintLayout>(R.id.bottom_sheet)
+                            bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+                            bottomSheetBehavior.peekHeight = 65
+                            bottomSheetBehavior.isFitToContents = false
+                            bottomSheetBehavior.halfExpandedRatio = 0.3f
+                            bottomSheetBehavior.state =
+                                BottomSheetBehavior.STATE_HALF_EXPANDED
+                            binding.bottomSheet.loadingList.visibility = View.GONE
+                            binding.bottomSheet.rvItem.visibility = View.GONE
+                            binding.bottomSheet.noData.visibility = View.VISIBLE
+
+                        }
+
+                    }
+                }
+            }
+        } else if (isSearchEmpty == true && isFilterEmpty == false) {
+            mainViewModel.getFilterDisaster(queryFilter!!).observe(this@MainActivity) {
+                if (it != null) {
+                    when (it) {
+                        is ResultCustom.Loading -> {
+                            binding.bottomSheet.loadingList.visibility = View.VISIBLE
+                            binding.bottomSheet.rvItem.visibility = View.GONE
+                            binding.bottomSheet.noData.visibility = View.GONE
+//                            Toast.makeText(
+//                                this@MainActivity,
+//                                ("loading"),
+//                                Toast.LENGTH_LONG
+//                            ).show()
+                        }
+
+                        is ResultCustom.Success ->
+                            if (it.data!!.isNotEmpty()) {
+                                binding.bottomSheet.loadingList.visibility = View.GONE
+                                binding.bottomSheet.rvItem.visibility = View.VISIBLE
+                                binding.bottomSheet.noData.visibility = View.GONE
+//                                mMap.clear()
+                                var listDisasterArea = ArrayList<Properties>()
+
+                                it.data.forEach { disaster ->
+                                    listDisasterArea.add(
+                                        Properties(
+                                            disaster?.properties?.imageUrl,
+                                            disaster?.properties?.disasterType,
+                                            disaster?.properties?.text,
+                                        )
+                                    )
+                                    Log.d(
+                                        "kok ga muncul",
+                                        "${disaster?.properties?.imageUrl}"
+                                    )
+                                }
+                                val bottomSheet =
+                                    findViewById<ConstraintLayout>(R.id.bottom_sheet)
+                                bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+                                bottomSheetBehavior.peekHeight = 65
+                                bottomSheetBehavior.isFitToContents = false
+                                bottomSheetBehavior.halfExpandedRatio = 0.3f
+                                bottomSheetBehavior.state =
+                                    BottomSheetBehavior.STATE_HALF_EXPANDED
+                                recyclerView = findViewById(R.id.rv_item)
+                                disasterAdapter = DisasterAdapter(listDisasterArea)
+                                recyclerView.adapter = disasterAdapter
+
+
+                            }
+
+                        is ResultCustom.Error -> {
+//                            Toast.makeText(
+//                                this@MainActivity,
+//                                ("tidak ada user filter"),
+//                                Toast.LENGTH_LONG
+//                            ).show()
+                            val bottomSheet =
+                                findViewById<ConstraintLayout>(R.id.bottom_sheet)
+                            bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+                            bottomSheetBehavior.peekHeight = 65
+                            bottomSheetBehavior.isFitToContents = false
+                            bottomSheetBehavior.halfExpandedRatio = 0.3f
+                            bottomSheetBehavior.state =
+                                BottomSheetBehavior.STATE_HALF_EXPANDED
+                            binding.bottomSheet.loadingList.visibility = View.GONE
+                            binding.bottomSheet.rvItem.visibility = View.GONE
+                            binding.bottomSheet.noData.visibility = View.VISIBLE
+
+                        }
+
+                    }
+                }
+            }
+
+        }
+    }
+
+    fun onTextViewClick(view: View) {
+        // Kode yang akan dijalankan ketika TextView diklik
+        if (view.id == R.id.tv_filter) {
+            // Contoh: Tampilkan pesan ketika TextView diklik
+            listDisaster(true, true)
+            binding.tvFilter.visibility = View.GONE
+            isFilterEmpty.value = true
+            isSearchEmpty.value = true
+        }
+    }
+
+
 }

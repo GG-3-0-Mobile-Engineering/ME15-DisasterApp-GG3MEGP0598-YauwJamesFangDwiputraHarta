@@ -39,5 +39,7 @@ object AdminArea {
         Pair("Sumatera Barat", "ID-SB"),
     )
 
+    val typeDisaster = listOf("flood", "earthquake", "fire", "haze", "wind", "volcano")
+
     const val PROVINCE = "all"
 }
