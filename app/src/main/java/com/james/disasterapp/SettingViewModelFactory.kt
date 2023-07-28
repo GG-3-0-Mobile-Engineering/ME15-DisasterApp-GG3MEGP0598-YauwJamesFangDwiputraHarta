@@ -1,4 +1,4 @@
-package com.james.submissiononefundamentalandroiddicoding.viewmodel
+package com.james.disasterapp
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

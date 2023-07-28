@@ -53,7 +53,7 @@ class Repository {
             }
         }
 
-    fun getNewrestFlood(): LiveData<ResultCustom<List<GeometriesItem?>?>> =
+    fun getNearestFlood(): LiveData<ResultCustom<List<GeometriesItem?>?>> =
         liveData {
             emit(ResultCustom.Loading)
             try {

@@ -4,7 +4,7 @@
 
         <SwitchPreference
             app:key="key_notification"
-            app:summary="Daily reminder for nearest schedule of the day."
+            app:summary="Daily reminder for highest flood on the last week."
             app:title="notification" />
 
     </PreferenceCategory>
