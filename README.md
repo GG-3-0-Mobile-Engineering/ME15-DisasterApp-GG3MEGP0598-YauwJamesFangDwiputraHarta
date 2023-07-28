@@ -1,2 +1,3 @@
 # DisasterApp
-APK : https://drive.google.com/drive/folders/1paaYlYfu_a2XDAVMOf7TgmVFLdrAljH_?usp=sharing
+APK : https://github.com/GG-3-0-Mobile-Engineering/ME15-DisasterApp-GG3MEGP0598-YauwJamesFangDwiputraHarta/releases/download/v1.0.0/disasterApp.apk
+
