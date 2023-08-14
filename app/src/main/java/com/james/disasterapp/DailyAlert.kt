@@ -131,4 +131,6 @@ class DailyAlert : BroadcastReceiver() {
 
         managerNotifs.notify(notifsId, notifsBuilder.build())
     }
+
+
 }

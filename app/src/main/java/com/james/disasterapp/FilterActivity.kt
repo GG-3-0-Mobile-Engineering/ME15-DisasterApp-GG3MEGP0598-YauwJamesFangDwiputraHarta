@@ -11,7 +11,7 @@ import com.james.disasterapp.AdminArea.suggestions
 import com.james.disasterapp.databinding.ActivityFilterBinding
 
 class FilterActivity : AppCompatActivity() {
-    private val binding by lazy {
+  val binding by lazy {
         ActivityFilterBinding.inflate(layoutInflater)
     }
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,23 +23,11 @@ class FilterActivity : AppCompatActivity() {
 
         binding.edtProvince.setAdapter(mAdapter)
         binding.edtProvince.addTextChangedListener { typeDisaster ->
-            val foundPair = AdminArea.suggestions.find { it.first.toString() == typeDisaster.toString()  }
-//            val intent = Intent(this, MainActivity::class.java)
-//            intent.putExtra(MainActivity.LOCATION, foundPair?.second.toString())
-//            startActivity(intent)
-//            finish()
 
             val resultIntent = Intent()
             resultIntent.putExtra(EXTRA_SELECTED_VALUE, typeDisaster.toString())
             setResult(RESULT_CODE, resultIntent)
             finish()
-
-
-//            Toast.makeText(
-//                this@FilterActivity,
-//                ("${it}"),
-//                Toast.LENGTH_LONG
-//            ).show()
         }
 
         val actionBar = supportActionBar

@@ -3,6 +3,8 @@ package com.james.disasterapp
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.action.ViewActions
+import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.matcher.IntentMatchers
@@ -23,11 +25,12 @@ class MainActivityTest {
 
     @Test
     fun checkFilterActivity() {
-        Espresso.onView(ViewMatchers.withId(R.id.fab_filter)).perform(ViewActions.click())
+        Espresso.onView(ViewMatchers.withId(R.id.fab_filter)).perform(click())
         Intents.intended(IntentMatchers.hasComponent(FilterActivity::class.java.name))
         Espresso.onView(ViewMatchers.withId(R.id.layout_province)).check(
             ViewAssertions.matches(ViewMatchers.isDisplayed()))
-        Espresso.onView(ViewMatchers.withId(R.id.edt_province)).perform(ViewActions.click())
+        Espresso.onView(ViewMatchers.withId(R.id.edt_province)).perform(click())
+        Espresso.onView(ViewMatchers.withText("flood"))
     }
 
     @Test
@@ -38,5 +41,11 @@ class MainActivityTest {
         Espresso.onView(ViewMatchers.withId(R.id.settings)).check(
             ViewAssertions.matches(
                 ViewMatchers.isDisplayed()))
+    }
+
+    @Test
+    fun testSearchSuggestion() {
+        Espresso.onView(ViewMatchers.withId(R.id.searchView)).perform(typeText("jawa timur"))
+        Espresso.onView(ViewMatchers.withText("jawa timur")).perform(click())
     }
 }
