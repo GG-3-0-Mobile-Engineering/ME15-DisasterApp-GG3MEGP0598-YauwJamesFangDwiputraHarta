@@ -26,8 +26,7 @@ class MainActivityTest {
         Espresso.onView(ViewMatchers.withId(R.id.fab_filter)).perform(ViewActions.click())
         Intents.intended(IntentMatchers.hasComponent(FilterActivity::class.java.name))
         Espresso.onView(ViewMatchers.withId(R.id.layout_province)).check(
-            ViewAssertions.matches(
-                ViewMatchers.isDisplayed()))
+            ViewAssertions.matches(ViewMatchers.isDisplayed()))
         Espresso.onView(ViewMatchers.withId(R.id.edt_province)).perform(ViewActions.click())
     }
 
