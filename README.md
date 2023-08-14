@@ -15,6 +15,6 @@ https://docs.petabencana.id/routes/pemantauan-tma
 video : https://drive.google.com/file/d/1ROeFD_8N705GSXn-kc9qQD56CSQZN7f2/view?usp=sharing
 
 # APK
-APK : https://github.com/GG-3-0-Mobile-Engineering/ME15-DisasterApp-GG3MEGP0598-YauwJamesFangDwiputraHarta/releases/tag/v1.0.0
-Demo : https://youtu.be/jLmjVZeUU2c
+- APK : https://github.com/GG-3-0-Mobile-Engineering/ME15-DisasterApp-GG3MEGP0598-YauwJamesFangDwiputraHarta/releases/tag/v1.0.0
+- Demo : https://youtu.be/jLmjVZeUU2c
 
